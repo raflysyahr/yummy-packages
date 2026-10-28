@@ -6,27 +6,13 @@ jobs:
     timeout-minutes: 360
     steps:
       - uses: actions/checkout@v4
-      - name: Izinkan container menulis
-        run: chmod -R a+rwX .
-
       - run: sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/lib/android
+      - run: mkdir -p output
+      - name: Cek izin output
+        run: ./scripts/run-docker.sh bash -c 'touch /home/builder/termux-packages/output/.tes && rm /home/builder/termux-packages/output/.tes && echo OUTPUT_BISA'
       - run: ./scripts/run-docker.sh ./scripts/build-bootstraps.sh --architectures aarch64
-      - name: Ambil zip dari container
-        if: always()
-        run: |
-          id; ls -ld .
-          docker ps -a
-          C=$(docker ps -aq | head -n1)
-          docker exec $C id
-          docker exec $C ls -ld /home/builder/termux-packages
-          Z=$(docker exec $C sh -c 'find / -name "bootstrap-aarch64.zip" -not -path "/proc/*" 2>/dev/null | head -n1')
-          echo "Zip ditemukan di: $Z"
-          if [ -n "$Z" ]; then docker cp "$C:$Z" ./bootstrap-aarch64.zip; fi
-          ls -la bootstrap-*.zip
-
       - uses: actions/upload-artifact@v4
-        if: always()
         with:
           name: bootstrap
-          path: bootstrap-*.zip
+          path: output/bootstrap-aarch64.zip
           if-no-files-found: error
