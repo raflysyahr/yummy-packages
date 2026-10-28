@@ -1,0 +1,10 @@
+name: Tes izin
+on: workflow_dispatch
+jobs:
+  tes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: chmod -R a+rwX .
+      - run: |
+          ./scripts/run-docker.sh bash -c 'id; touch /tmp/x.zip; mv /tmp/x.zip /home/builder/termux-packages/bootstrap-aarch64.zip && echo MV_OK; mount | grep termux-packages'
