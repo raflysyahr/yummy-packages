@@ -83,7 +83,7 @@ build_package() {
 		# Dependency packages may not have a build.sh, so we ignore the error.
 		# A better way should be implemented to validate if its actually a dependency
 		# and not a required package itself, by removing dependencies from PACKAGES array.
-		if [[ $IGNORE_BUILD_SCRIPT_NOT_FOUND_ERROR == "1" ]] && [[ "$build_output" == *"No build.sh script at package dir"* ]]; then
+		if [[ $IGNORE_BUILD_SCRIPT_NOT_FOUND_ERROR == "1" ]] && [[ "$build_output" == *"No build.sh script at package dir"* || "$build_output" == *"found in any of the enabled repositories"* ]]; then
 			echo "Ignoring error 'No build.sh script at package dir'" 1>&2
 			return 0
 		fi
