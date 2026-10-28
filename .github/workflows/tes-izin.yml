@@ -7,4 +7,4 @@ jobs:
       - uses: actions/checkout@v4
       - run: chmod -R a+rwX .
       - run: |
-          ./scripts/run-docker.sh bash -c 'id; touch /tmp/x.zip; mv /tmp/x.zip /home/builder/termux-packages/bootstrap-aarch64.zip && echo MV_OK; mount | grep termux-packages'
+          ./scripts/run-docker.sh bash -c 'cd /home/builder/termux-packages; for d in . output scripts packages; do if touch $d/.tes 2>/dev/null; then echo "$d: BISA"; rm $d/.tes; else echo "$d: DITOLAK"; fi; done'
