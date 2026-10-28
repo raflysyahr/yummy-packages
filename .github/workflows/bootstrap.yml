@@ -6,12 +6,24 @@ jobs:
     timeout-minutes: 360
     steps:
       - uses: actions/checkout@v4
-      - run: sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/lib/android
       - name: Izinkan container menulis
         run: chmod -R a+rwX .
 
-      - run: ./scripts/run-docker.sh ./build-package.sh -a aarch64 libbz2
+      - run: sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/lib/android
       - run: ./scripts/run-docker.sh ./scripts/build-bootstraps.sh --architectures aarch64
+      - name: Ambil zip dari container
+        if: always()
+        run: |
+          id; ls -ld .
+          docker ps -a
+          C=$(docker ps -aq | head -n1)
+          docker exec $C id
+          docker exec $C ls -ld /home/builder/termux-packages
+          Z=$(docker exec $C sh -c 'find / -name "bootstrap-aarch64.zip" -not -path "/proc/*" 2>/dev/null | head -n1')
+          echo "Zip ditemukan di: $Z"
+          if [ -n "$Z" ]; then docker cp "$C:$Z" ./bootstrap-aarch64.zip; fi
+          ls -la bootstrap-*.zip
+
       - uses: actions/upload-artifact@v4
         if: always()
         with:
