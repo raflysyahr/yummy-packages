@@ -1,0 +1,14 @@
+name: Build bootstrap
+on: workflow_dispatch
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/lib/android
+      - run: ./scripts/run-docker.sh ./scripts/build-bootstraps.sh --architectures aarch64
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bootstrap
+          path: "*.zip"
