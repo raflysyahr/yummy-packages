@@ -242,7 +242,8 @@ add_termux_bootstrap_second_stage_files() {
 create_bootstrap_archive() {
 
     # Kunci publik repo Yummy (base64 dari yummy-repo.gpg, hasil: base64 -w0)
-    local YUMMY_KEY_B64='mDMEauLy9hYJKwYBBAHaRw8BAQdAmta7MNUYAi1dOu9MlJ8QxrXS0Et2ZkUmTElqCYFobNW0H1l1bW15IFJlcG8gPHJlcG9AeXVtbXkuaW52YWxpZD6IkwQTFgoAOxYhBEgqgZf1ItiH+kQFpVUdlVc2bgqEBQJq4vL2AhsjBQsJCAcCAiICBhUKCQgLAgQWAgMBAh4HAheAAAoJEFUdlVc2bgqEwREA/imGBaC36pG5kiUoWrnxOk7Y/dNSbjYor9Z2oe8aYj/DAP'
+    local YUMMY_KEY_B64='mDMEauLy9hYJKwYBBAHaRw8BAQdAmta7MNUYAi1dOu9MlJ8QxrXS0Et2ZkUmTElqCYFobNW0H1l1bW15IFJlcG8gPHJlcG9AeXVtbXkuaW52YWxpZD6IkwQTFgoAOxYhBEgqgZf1ItiH+kQFpVUdlVc2bgqEBQJq4vL2AhsjBQsJCAcCAiICBhUKCQgLAgQWAgMBAh4HAheAAAoJEFUdlVc2bgqEwREA/imGBaC36pG5kiUoWrnxOk7Y/dNSbjYor9Z2oe8aYj/DAP9KZecOa6r4auc1qRdoKcCgVIvfA6DrxkN2aGmcRQZYAA=='
+
     local key_tmp
     key_tmp="$(mktemp)"
     if ! echo "$YUMMY_KEY_B64" | base64 -d > "$key_tmp" 2>/dev/null || [ "$(wc -c < "$key_tmp")" -lt 40 ]; then
