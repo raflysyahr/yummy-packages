@@ -128,10 +128,16 @@ extract_debs() {
 			continue
 		fi
 
-		if [[ "$current_package_name" == *"-static" ]]; then
+		if [[ "$current_package_name" == *"-static"  ]]; then
 			echo "[*] Skipping static package '$deb'..."
 			continue
 		fi
+
+		if [[ "$current_package_name" == "dpkg-perl" ]] || [[ "$current_package_name" == "dpkg-scanpackages" ]]; then
+			echo "[*] Skipping '$deb' (tidak dipakai di Yummy)..."
+      continue
+    fi
+
 
 		if [[ " ${EXTRACTED_PACKAGES[*]} " == *" $current_package_name "* ]]; then
 			echo "[*] Skipping already extracted package '$current_package_name'..."
@@ -232,28 +238,48 @@ add_termux_bootstrap_second_stage_files() {
 # Final stage: generate bootstrap archive and place it to current
 # working directory.
 # Information about symlinks is stored in file SYMLINKS.txt.
+
 create_bootstrap_archive() {
 
-	echo $'\n\n\n'"[*] Creating 'bootstrap-${1}.zip'..."
-	(cd "${BOOTSTRAP_ROOTFS}/${TERMUX_PREFIX}"
-		# Do not store symlinks in bootstrap archive.
-		# Instead, put all information to SYMLINKS.txt
-		while read -r -d '' link; do
-			echo "$(readlink "$link")←${link}" >> SYMLINKS.txt
-			rm -f "$link"
-		done < <(find . -type l -print0)
+    # Kunci publik repo Yummy (base64 dari yummy-repo.gpg, hasil: base64 -w0)
+    local YUMMY_KEY_B64='mDMEauLy9hYJKwYBBAHaRw8BAQdAmta7MNUYAi1dOu9MlJ8QxrXS0Et2ZkUmTElqCYFobNW0H1l1bW15IFJlcG8gPHJlcG9AeXVtbXkuaW52YWxpZD6IkwQTFgoAOxYhBEgqgZf1ItiH+kQFpVUdlVc2bgqEBQJq4vL2AhsjBQsJCAcCAiICBhUKCQgLAgQWAgMBAh4HAheAAAoJEFUdlVc2bgqEwREA/imGBaC36pG5kiUoWrnxOk7Y/dNSbjYor9Z2oe8aYj/DAP'
+    local key_tmp
+    key_tmp="$(mktemp)"
+    if ! echo "$YUMMY_KEY_B64" | base64 -d > "$key_tmp" 2>/dev/null || [ "$(wc -c < "$key_tmp")" -lt 40 ]; then
+        echo "[!] YUMMY_KEY_B64 belum diisi dengan benar. Hentikan build."
+        rm -f "$key_tmp"
+        exit 1
+    fi
 
-		zip -r9 "${BOOTSTRAP_TMPDIR}/bootstrap-${1}.zip" ./*
-	)
+    echo $'\n\n\n'"[*] Creating 'bootstrap-${1}.zip'..."
+    (cd "${BOOTSTRAP_ROOTFS}/${TERMUX_PREFIX}"
+        # Repo apt bawaan: repo Yummy (hapus file lama dulu, bisa berupa symlink)
+        mkdir -p etc/apt/trusted.gpg.d
+        rm -f etc/apt/sources.list
+        echo 'deb https://raflysyahr.github.io/yummy-repo/ ./' > etc/apt/sources.list
+        cp "$key_tmp" etc/apt/trusted.gpg.d/yummy-repo.gpg
 
-		mkdir -p "$TERMUX_PACKAGES_DIRECTORY/output"
+        # Do not store symlinks in bootstrap archive.
+        # Instead, put all information to SYMLINKS.txt
+        while read -r -d '' link; do
+            echo "$(readlink "$link")←${link}" >> SYMLINKS.txt
+            rm -f "$link"
+        done < <(find . -type l -print0)
+
+        zip -r9 "${BOOTSTRAP_TMPDIR}/bootstrap-${1}.zip" ./*
+    )
+    rm -f "$key_tmp"
+
+    mkdir -p "$TERMUX_PACKAGES_DIRECTORY/output"
     mv -f "${BOOTSTRAP_TMPDIR}/bootstrap-${1}.zip" "$TERMUX_PACKAGES_DIRECTORY/output/" || { echo "[!] Gagal memindahkan zip"; exit 1; }
 
-
-
-	echo "[*] Finished successfully (${1})."
-
+    echo "[*] Finished successfully (${1})."
 }
+
+
+
+
+
 
 set_build_bootstrap_traps() {
 
