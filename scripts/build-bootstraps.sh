@@ -216,7 +216,7 @@ add_termux_bootstrap_second_stage_files() {
 	sed -e "s|@TERMUX_PREFIX@|${TERMUX_PREFIX}|g" \
 		-e "s|@TERMUX_BOOTSTRAP__BOOTSTRAP_SECOND_STAGE_DIR@|${TERMUX_BOOTSTRAP__BOOTSTRAP_SECOND_STAGE_DIR}|g" \
 		-e "s|@TERMUX_BOOTSTRAP__BOOTSTRAP_SECOND_STAGE_ENTRY_POINT_SUBFILE@|${TERMUX_BOOTSTRAP__BOOTSTRAP_SECOND_STAGE_ENTRY_POINT_SUBFILE}|g" \
-		-e "s|@TERMUX_PACKAGE_MANAGER@|${TERMUX_PACKAGE_MANAGER}|g" \
+		-e "s|@TERMUX_PACKAGE_MANAGER@|${TERMUX_PACKAGE_MANAGER:-apt}|g" \
 		-e "s|@TERMUX_PACKAGE_ARCH@|${package_arch}|g" \
 		-e "s|@TERMUX_APP__NAME@|${TERMUX_APP__NAME}|g" \
 		-e "s|@TERMUX_ENV__S_TERMUX@|${TERMUX_ENV__S_TERMUX}|g" \
@@ -259,6 +259,10 @@ create_bootstrap_archive() {
         rm -f etc/apt/sources.list
         echo 'deb https://raflysyahr.github.io/yummy-repo/ ./' > etc/apt/sources.list
         cp "$key_tmp" etc/apt/trusted.gpg.d/yummy-repo.gpg
+
+				# Perbaiki sisa path com.termux pada skrip teks (file binary dilewati: -I)
+        ( grep -rIlZ "/data/data/com\.termux" bin etc share 2>/dev/null || true ) \
+            | xargs -0 -r sed -i 's|/data/data/com\.termux|/data/data/com.yummy|g'
 
         # Do not store symlinks in bootstrap archive.
         # Instead, put all information to SYMLINKS.txt
