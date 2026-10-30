@@ -264,6 +264,19 @@ create_bootstrap_archive() {
         ( grep -rIlZ "/data/data/com\.termux" bin etc share 2>/dev/null || true ) \
             | xargs -0 -r sed -i 's|/data/data/com\.termux|/data/data/com.yummy|g'
 
+				# Perbaiki nama package pada skrip termux-tools (nama class Java com.termux.app.* sengaja tetap)
+				for f in termux-setup-storage termux-open termux-reset termux-reload-settings \
+         termux-wake-lock termux-wake-unlock termux-info; do
+				    if [ -f "bin/$f" ]; then
+			        sed -i \
+			            -e 's|"com\.termux/|"com.yummy/|g' \
+			            -e 's|"com\.termux"|"com.yummy"|g' \
+			            -e 's|"com\.termux\.app\.reload_style"|"com.yummy.app.reload_style"|g' \
+			            -e 's|"com\.termux\.service_wake_|"com.yummy.service_wake_|g' \
+		            "bin/$f"
+				    fi
+				done
+
         # Do not store symlinks in bootstrap archive.
         # Instead, put all information to SYMLINKS.txt
         while read -r -d '' link; do
